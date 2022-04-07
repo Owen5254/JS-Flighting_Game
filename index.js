@@ -9,16 +9,31 @@ c.fillRect(0, 0, canvas.width, canvas.height)
 const gravity = 0.7
 
 class Spirit{
-    constructor({position, velocity}){
+    constructor({position, velocity, color}){
         this.position = position
         this.velocity = velocity
+        this.width = 50
         this.height = 150
         this.lastkey
+        this.color = color
+        this.attackBox = {
+            position: this.position,
+            width: 100,
+            height: 50
+        }
+        this.isAttacking
     }
     draw(){
-        c.fillStyle = 'red'
-        c.fillRect(this.position.x, this.position.y, 50, this.height)
+        // draw character
+        c.fillStyle = this.color
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
+        
+        // draw attack box
+        if (this.isAttacking){
+            c.fillStyle = 'green'
+            c.fillRect(this.attackBox.position.x,this.attackBox.position.y, this.attackBox.width,this.attackBox.height)}
     }
+        
     update(){
         this.draw()
         this.position.y += this.velocity.y
@@ -26,6 +41,13 @@ class Spirit{
         if (this.position.y + this.height + this.velocity.y  >= canvas.height){
             this.velocity.y = 0
         }else this.velocity.y += gravity
+    }
+
+    attack(){
+        this.isAttacking = true
+        setTimeout(()=>{
+            this.isAttacking = false
+        }, 100)
     }
 }
 
@@ -37,7 +59,8 @@ const player = new Spirit({
     velocity: {
         x: 0,
         y: 0
-    }
+    },
+    color: 'red'
 })
 
 
@@ -50,7 +73,8 @@ const enemy = new Spirit({
     velocity: {
         x: 0,
         y: 0
-    }
+    },
+    color: 'blue'
 })
 
 const key ={
@@ -82,7 +106,6 @@ function animate(){
     c.fillRect(0,0,canvas.width,canvas.height)
     player.update()
     enemy.update()
-    console.log('running')
 
     player.velocity.x = 0
     enemy.velocity.x = 0
@@ -99,6 +122,18 @@ function animate(){
         enemy.velocity.x = -5
     } else if (key.ArrowRight.pressed && enemy.lastkey === 'ArrowRight'){
         enemy.velocity.x = 5
+    }
+
+    // 碰狀偵測
+    if (
+        player.attackBox.position.x + player.attackBox.width >= enemy.position.x &&
+        player.attackBox.position.x <= enemy.position.x + enemy.width &&
+        player.attackBox.position.y + player.attackBox.height >= enemy.position.y &&
+        player.attackBox.position.y <= enemy.position.y + enemy.height &&
+        player.isAttacking
+    ){
+        console.log('go')
+        player.isAttacking = false
     }
 }
 animate()
@@ -118,7 +153,11 @@ window.addEventListener('keydown', (event)=>{
             key.w.pressed = true
             player.velocity.y = -20
             break
-    
+        
+        case ' ':
+            player.attack()
+            break
+
         case 'ArrowRight':
             key.ArrowRight.pressed = true
             enemy.lastkey = 'ArrowRight'
