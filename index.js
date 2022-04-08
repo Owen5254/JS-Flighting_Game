@@ -9,7 +9,7 @@ c.fillRect(0, 0, canvas.width, canvas.height)
 const gravity = 0.7
 
 class Spirit{
-    constructor({position, velocity, color}){
+    constructor({position, velocity, color, offset}){
         this.position = position
         this.velocity = velocity
         this.width = 50
@@ -17,7 +17,11 @@ class Spirit{
         this.lastkey
         this.color = color
         this.attackBox = {
-            position: this.position,
+            position: {
+                x: this.position.x,
+                y: this.position.y
+            },
+            offset: offset,
             width: 100,
             height: 50
         }
@@ -29,13 +33,16 @@ class Spirit{
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
         
         // draw attack box
-        if (this.isAttacking){
-            c.fillStyle = 'green'
-            c.fillRect(this.attackBox.position.x,this.attackBox.position.y, this.attackBox.width,this.attackBox.height)}
-    }
+        //if (this.isAttacking){
+        c.fillStyle = 'green'
+        c.fillRect(this.attackBox.position.x,this.attackBox.position.y, this.attackBox.width,this.attackBox.height)
+}
         
     update(){
         this.draw()
+        this.attackBox.position.x = this.position.x + this.attackBox.offset.x
+        this.attackBox.position.y = this.position.y
+
         this.position.y += this.velocity.y
         this.position.x += this.velocity.x
         if (this.position.y + this.height + this.velocity.y  >= canvas.height){
@@ -60,6 +67,10 @@ const player = new Spirit({
         x: 0,
         y: 0
     },
+    offset: {
+        x: 0,
+        y: 0
+    },
     color: 'red'
 })
 
@@ -72,6 +83,10 @@ const enemy = new Spirit({
     },   
     velocity: {
         x: 0,
+        y: 0
+    },
+    offset: {
+        x: -50,
         y: 0
     },
     color: 'blue'
@@ -99,6 +114,14 @@ const key ={
     }
 }
 
+function rectangularCollision( { rectangle1, rectangle2 } ){
+    return(
+        rectangle1.attackBox.position.x + rectangle1.attackBox.width >= rectangle2.position.x &&
+        rectangle1.attackBox.position.x <= rectangle2.position.x + rectangle2.width &&
+        rectangle1.attackBox.position.y + rectangle1.attackBox.height >= rectangle2.position.y &&
+        rectangle1.attackBox.position.y <= rectangle2.position.y + rectangle2.height
+    )
+}
 
 function animate(){
     window.requestAnimationFrame(animate)
@@ -126,14 +149,25 @@ function animate(){
 
     // 碰狀偵測
     if (
-        player.attackBox.position.x + player.attackBox.width >= enemy.position.x &&
-        player.attackBox.position.x <= enemy.position.x + enemy.width &&
-        player.attackBox.position.y + player.attackBox.height >= enemy.position.y &&
-        player.attackBox.position.y <= enemy.position.y + enemy.height &&
+        rectangularCollision({
+            rectangle1: player,
+            rectangle2: enemy
+        }) &&
         player.isAttacking
     ){
         console.log('go')
         player.isAttacking = false
+    }
+    
+    if (
+        rectangularCollision({
+            rectangle1: enemy,
+            rectangle2: player
+        }) &&
+        enemy.isAttacking
+    ){
+        console.log('enemy attack successful')
+        enemy.isAttacking = false
     }
 }
 animate()
@@ -157,6 +191,7 @@ window.addEventListener('keydown', (event)=>{
         case ' ':
             player.attack()
             break
+    
 
         case 'ArrowRight':
             key.ArrowRight.pressed = true
@@ -169,6 +204,10 @@ window.addEventListener('keydown', (event)=>{
         case 'ArrowUp':
             key.ArrowUp.pressed = true
             enemy.velocity.y = -20
+            break
+
+        case 'ArrowDown':
+            enemy.isAttacking = true
             break
 }})
 
