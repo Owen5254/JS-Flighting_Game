@@ -16,6 +16,7 @@ class Spirit{
         this.height = 150
         this.lastkey
         this.color = color
+        this.health = 100
         this.attackBox = {
             position: {
                 x: this.position.x,
@@ -33,10 +34,11 @@ class Spirit{
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
         
         // draw attack box
-        //if (this.isAttacking){
-        c.fillStyle = 'green'
-        c.fillRect(this.attackBox.position.x,this.attackBox.position.y, this.attackBox.width,this.attackBox.height)
-}
+        if (this.isAttacking){
+            c.fillStyle = 'green'
+            c.fillRect(this.attackBox.position.x,this.attackBox.position.y, this.attackBox.width,this.attackBox.height)
+        }
+    }
         
     update(){
         this.draw()
@@ -155,8 +157,9 @@ function animate(){
         }) &&
         player.isAttacking
     ){
-        console.log('go')
         player.isAttacking = false
+        enemy.health -= 20
+        document.querySelector('#enemyHealth').style.width = enemy.health + '%'
     }
     
     if (
@@ -166,7 +169,8 @@ function animate(){
         }) &&
         enemy.isAttacking
     ){
-        console.log('enemy attack successful')
+        player.health -= 20
+        document.querySelector('#playerHealth').style.width = player.health + '%'
         enemy.isAttacking = false
     }
 }
@@ -207,7 +211,7 @@ window.addEventListener('keydown', (event)=>{
             break
 
         case 'ArrowDown':
-            enemy.isAttacking = true
+            enemy.attack()
             break
 }})
 
