@@ -1,66 +1,20 @@
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
-
 canvas.width = 1024
 canvas.height = 576
-
 c.fillRect(0, 0, canvas.width, canvas.height)
-
 const gravity = 0.7
 
-class Spirit{
-    constructor({position, velocity, color, offset}){
-        this.position = position
-        this.velocity = velocity
-        this.width = 50
-        this.height = 150
-        this.lastkey
-        this.color = color
-        this.health = 100
-        this.attackBox = {
-            position: {
-                x: this.position.x,
-                y: this.position.y
-            },
-            offset: offset,
-            width: 100,
-            height: 50
-        }
-        this.isAttacking
-    }
-    draw(){
-        // draw character
-        c.fillStyle = this.color
-        c.fillRect(this.position.x, this.position.y, this.width, this.height)
-        
-        // draw attack box
-        if (this.isAttacking){
-            c.fillStyle = 'green'
-            c.fillRect(this.attackBox.position.x,this.attackBox.position.y, this.attackBox.width,this.attackBox.height)
-        }
-    }
-        
-    update(){
-        this.draw()
-        this.attackBox.position.x = this.position.x + this.attackBox.offset.x
-        this.attackBox.position.y = this.position.y
 
-        this.position.y += this.velocity.y
-        this.position.x += this.velocity.x
-        if (this.position.y + this.height + this.velocity.y  >= canvas.height){
-            this.velocity.y = 0
-        }else this.velocity.y += gravity
-    }
+const background = new Spirit({
+    position:{
+        x: 0,
+        y: 0
+    },
+    imageSrc: './img/background.png'    
+})
 
-    attack(){
-        this.isAttacking = true
-        setTimeout(()=>{
-            this.isAttacking = false
-        }, 100)
-    }
-}
-
-const player = new Spirit({
+const player = new Fighter({
     position: {
         x: 0,
         y: 0
@@ -76,9 +30,7 @@ const player = new Spirit({
     color: 'red'
 })
 
-
-
-const enemy = new Spirit({
+const enemy = new Fighter({
     position: {
         x: 400,
         y: 100
@@ -116,46 +68,14 @@ const key ={
     }
 }
 
-function rectangularCollision( { rectangle1, rectangle2 } ){
-    return(
-        rectangle1.attackBox.position.x + rectangle1.attackBox.width >= rectangle2.position.x &&
-        rectangle1.attackBox.position.x <= rectangle2.position.x + rectangle2.width &&
-        rectangle1.attackBox.position.y + rectangle1.attackBox.height >= rectangle2.position.y &&
-        rectangle1.attackBox.position.y <= rectangle2.position.y + rectangle2.height
-    )
-}
 
-function determineWinner({player, enemy, timerID}){
-    clearTimeout(timerID)
-    document.querySelector('#displayText').style.display = 'flex'
-    if(player.health === enemy.health){
-        document.querySelector('#displayText').innerHTML = 'Tie'    
-    }else if(player.health > enemy.health){
-        document.querySelector('#displayText').innerHTML = 'Player 1 Wins'
-    }else if(player.health < enemy.health){
-        document.querySelector('#displayText').innerHTML = 'Player 2 Wins'
-    }
-}
-
-let timer = 50
-let timerID
-function decreaseTimer(){
-
-    timerID = setTimeout(decreaseTimer, 1000)
-    if(timer > 0) {
-        timer--
-        document.querySelector('#timer').innerHTML = timer
-    }
-    if(timer === 0){
-        determineWinner({player, enemy, timerID})   
-    }
-}
 decreaseTimer()
 
 function animate(){
     window.requestAnimationFrame(animate)
     c.fillStyle = 'black'
     c.fillRect(0,0,canvas.width,canvas.height)
+    background.update()
     player.update()
     enemy.update()
 
